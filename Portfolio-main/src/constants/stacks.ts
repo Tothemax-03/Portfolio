@@ -30,9 +30,7 @@ export const backEndStacks: backEndSkills[] = [
   {
     name: "PHP",
   },
-  {
-    name: "MongoDB",
-  },
+
   {
     name: "MySQL",
   },
@@ -48,12 +46,17 @@ export const otherStacks: otherSkills[] = [
   {
     name: "Git",
   },
-  {
-    name: "AWS",
-  },
+
   {
     name: "Github Actions",
   },
+  {
+    name: "Netlify",
+  },
+  {    
+    name: "Wix",  
+  },
+  
 ];
 
 export const devOpsCloudStacks: devOpsCloudSkills[] = [];

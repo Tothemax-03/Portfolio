@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { HiOutlineBriefcase } from "react-icons/hi2";
 import { experienceData } from "../constants/experience";
 import { HiOutlineBeaker } from "react-icons/hi";
@@ -10,25 +11,52 @@ import {
   otherStacks,
 } from "../constants/stacks";
 import { projects } from "../constants/projects";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { galleryData } from "@/constants/gallery";
 import { HiOutlinePhotograph } from "react-icons/hi";
 import { socialLinks } from "../constants/socials";
 
 const Content = () => {
+  const marqueeTrackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const track = marqueeTrackRef.current;
+    if (!track) return;
+
+    let animationFrameId = 0;
+    let translateX = 0;
+    const speedPxPerFrame = 0.15;
+
+    const animate = () => {
+      const loopWidth = track.scrollWidth / 2;
+      if (!loopWidth) {
+        animationFrameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      translateX -= speedPxPerFrame;
+      if (Math.abs(translateX) >= loopWidth) {
+        translateX = 0;
+      }
+
+      track.style.transform = `translate3d(${translateX}px, 0, 0)`;
+      animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    animationFrameId = window.requestAnimationFrame(animate);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      track.style.transform = "translate3d(0, 0, 0)";
+    };
+  }, []);
+
   return (
-    <div className="w-full h-auto mt-6 lg:mt-8 flex flex-col gap-5 lg:gap-6 pb-8 xl:px-16">
+    <div className="w-full h-auto mt-6 lg:mt-8 flex flex-col gap-5 lg:gap-6 pb-8 xl:px-4 pop-scope">
       {/* Row 1: About + Experience Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
         {/* About Section - Left Column */}
         <div className="lg:col-span-7">
-          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl h-full bg-white dark:bg-gray-900">
+          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl h-full bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <h3 className="text-md font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
               <HiOutlineBriefcase className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               About
@@ -36,26 +64,21 @@ const Content = () => {
 
             <div className="flex flex-col gap-3 mt-4">
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                I am a BSIT graduate and a passionate Web Developer who enjoys
-                building modern, resposive, and use-focused web applications and
-                websites. I have hands-on experience working with Vue.js, React,
-                Node.js, TypeScript, and modern web technologies, and I
-                continuously strive to improve my skills by exploring new tools,
-                frameworks, and best practices in web development.
+                I am a BSIT student and aspiring Web Developer who enjoys building modern, responsive,
+                 and user-focused websites and web applications. I have hands-on experience working with Vue.js, React, Node.js,
+                  TypeScript, and other modern web technologies, and I continuously improve my skills by exploring new tools, frameworks, and best practices in web development.
               </p>
 
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                During my college years, I actively parcipated in website and
-                web design competitions, where i honed my problem-solving
-                skills, creativity and teamwork, while also pushing me to write
-                clean, efficient, and maintainable code.
+                During my college journey, I actively participated in website and web design competitions,
+                 where I developed my problem-solving skills, creativity, and teamwork.
+                  These experiences also helped me learn how to write clean, efficient, and maintainable code.
               </p>
 
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                I am driven by a strong passion for learning, building
-                meaningful projects, and turning ideas into functional digital
-                experiences. My goal is to grow as developer while contributing
-                to impactful projects that solve real world problems.
+                I am driven by a strong passion for learning, building meaningful projects,
+                 and turning ideas into functional digital experiences. My goal is to grow as a developer while contributing
+                  to impactful projects that solve real-world problems.
               </p>
             </div>
           </div>
@@ -63,7 +86,7 @@ const Content = () => {
 
         {/* Experience Section - Right Column */}
         <div className="lg:col-span-5">
-          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl h-full bg-white dark:bg-gray-900">
+          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl h-full bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <h3 className="text-md font-semibold flex items-center gap-2 mb-4 text-gray-900 dark:text-white">
               <HiOutlineBriefcase className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               Experience
@@ -108,7 +131,7 @@ const Content = () => {
       </div>
 
       {/* Row 2: Tech Stack - Full Width */}
-      <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900">
+      <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-md font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <HiOutlineBeaker className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -129,7 +152,7 @@ const Content = () => {
               {frontEndStacks.map((stack, index) => (
                 <div
                   key={index}
-                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-gray-200"
+                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 hover:-translate-y-1 hover:shadow-md text-gray-800 dark:text-gray-200"
                 >
                   {stack.name}
                 </div>
@@ -146,7 +169,7 @@ const Content = () => {
               {backEndStacks.map((stack, index) => (
                 <div
                   key={index}
-                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-gray-200"
+                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 hover:-translate-y-1 hover:shadow-md text-gray-800 dark:text-gray-200"
                 >
                   {stack.name}
                 </div>
@@ -163,7 +186,7 @@ const Content = () => {
               {otherStacks.map((stack, index) => (
                 <div
                   key={index}
-                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-gray-200"
+                  className="text-xs py-1.5 px-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 hover:-translate-y-1 hover:shadow-md text-gray-800 dark:text-gray-200"
                 >
                   {stack.name}
                 </div>
@@ -176,7 +199,7 @@ const Content = () => {
       {/* Row 3: Beyond Coding + Projects Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
         {/* Beyond Coding Section */}
-        <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900">
+        <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <h3 className="text-md font-semibold flex items-center gap-2 mb-4 text-gray-900 dark:text-white">
             <IoIosLink className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             Social Links
@@ -190,9 +213,9 @@ const Content = () => {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 group"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group"
                 >
-                  <IconComponent className="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors shrink-0" />
+                  <IconComponent className="w-5 h-5 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-115 transition-all duration-300 shrink-0" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {social.name}
                   </span>
@@ -203,7 +226,7 @@ const Content = () => {
         </div>
 
         <div className="lg:col-span-2 flex flex-col gap-5 lg:gap-6">
-          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900">
+          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <h3 className="text-md font-semibold flex items-center gap-2 mb-4 text-gray-900 dark:text-white">
               <MdOutlineVideoLibrary className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               Beyond Coding
@@ -228,7 +251,7 @@ const Content = () => {
           </div>
 
           {/* Projects Section */}
-          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900">
+          <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-md font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
                 <HiOutlineFolderOpen className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -241,20 +264,34 @@ const Content = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {projects.slice(0, 4).map((project, index) => (
-                <div
+                <a
                   key={index}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all cursor-pointer bg-white dark:bg-gray-800"
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer bg-white dark:bg-gray-800"
                 >
-                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
+                  <div className="mb-3 rounded-md overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">
+                    <img
+                      src={project.screenshotSrc ?? project.imageSrc}
+                      alt={project.imageAlt ?? `${project.title} project preview`}
+                      loading="lazy"
+                      onError={(event) => {
+                        event.currentTarget.src = project.imageSrc;
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {project.title}
                   </h4>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 text-fade-out">
                     {project.description}
                   </p>
-                  <span className="inline-block mt-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 text-xs rounded text-gray-700 dark:text-gray-300">
+                  <span className="inline-block mt-2 bg-gray-100 dark:bg-gray-700 px-2 py-1 text-xs rounded text-gray-700 dark:text-gray-300 transition-colors duration-300 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30">
                     {project.domainName}
                   </span>
-                </div>
+                </a>
               ))}
             </div>
           </div>
@@ -262,44 +299,31 @@ const Content = () => {
       </div>
 
       {/* Row 4: Gallery Section */}
-      <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900">
+      <div className="border border-gray-200 dark:border-gray-700 py-5 px-5 rounded-xl bg-white dark:bg-gray-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
         <h3 className="text-md font-semibold flex items-center gap-2 mb-4 text-gray-900 dark:text-white">
           <HiOutlinePhotograph className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           Gallery
         </h3>
 
-        <div className="relative">
-          <Carousel
-            opts={{
-              align: "start",
-            }}
-            className="w-full"
+        <div className="relative overflow-hidden">
+          <div
+            ref={marqueeTrackRef}
+            className="flex w-max gap-2 md:gap-4 will-change-transform"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {galleryData.map((item, index) => (
-                <CarouselItem
-                  key={index}
-                  className="pl-2 md:pl-4 basis-full md:basis-1/3 lg:basis-1/5"
-                >
-                  <div className="overflow-hidden rounded-lg aspect-4/5">
-                    <img
-                      src={item.imgSrc}
-                      alt="Gallery item"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="hidden md:flex -left-4 lg:-left-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700" />
-            <CarouselNext className="hidden md:flex -right-4 lg:-right-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-md hover:bg-gray-50 dark:hover:bg-gray-700" />
-          </Carousel>
-
-          {/* Mobile navigation dots or swipe indicator */}
-          <div className="flex justify-center mt-4 md:hidden">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Swipe to see more →
-            </p>
+            {[...galleryData, ...galleryData].map((item, index) => (
+              <div
+                key={`${item.id}-${index}`}
+                className="w-52 sm:w-56 md:w-60 lg:w-56 xl:w-60 shrink-0"
+              >
+                <div className="group overflow-hidden rounded-lg aspect-4/5">
+                  <img
+                    src={item.imgSrc}
+                    alt="Gallery item"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

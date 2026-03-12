@@ -26,6 +26,9 @@ export interface Projects {
   description: string;
   link: string;
   domainName: string;
+  imageSrc: string;
+  screenshotSrc?: string;
+  imageAlt?: string;
 }
 
 export interface GalleryItem {

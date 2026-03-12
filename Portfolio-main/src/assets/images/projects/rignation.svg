@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">RigNation Preview</title>
+  <desc id="desc">Placeholder preview image for the RigNation project.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)" />
+  <rect x="80" y="70" width="1040" height="535" rx="24" fill="#ffffff" fill-opacity="0.08" />
+  <rect x="120" y="130" width="960" height="56" rx="12" fill="#ffffff" fill-opacity="0.75" />
+  <rect x="120" y="230" width="410" height="230" rx="18" fill="#111827" />
+  <rect x="560" y="230" width="520" height="36" rx="10" fill="#dbeafe" fill-opacity="0.95" />
+  <rect x="560" y="282" width="420" height="26" rx="8" fill="#93c5fd" />
+  <rect x="560" y="320" width="320" height="26" rx="8" fill="#93c5fd" />
+  <rect x="560" y="370" width="170" height="52" rx="12" fill="#2563eb" />
+  <text x="592" y="404" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">View Gear</text>
+  <text x="120" y="548" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="700">RigNation</text>
+</svg>

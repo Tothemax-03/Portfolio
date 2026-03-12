@@ -1,28 +1,25 @@
 import type { Projects } from "../types";
+import HeartBananaFriesPreview from "@/assets/images/projects/heart-banana-fries.svg?url";
+import RigNationPreview from "@/assets/images/projects/rignation.svg?url";
 
 export const projects: Projects[] = [
   {
-    title: "Frigomat",
-    description: "A website for gelato machines",
-    link: "https://frigomat.ph/",
-    domainName: "frigomat.ph",
+    title: "Heart Banana Fries",
+    description: "An e-commerce website for a food business",
+    link: "https://paulczarcataylo13.wixsite.com/bananaheartfries",
+    domainName: "paulczarcataylo13.wixsite.com",
+    imageSrc: HeartBananaFriesPreview,
+    screenshotSrc: "/projects/heart-banana-fries.png",
+    imageAlt: "Heart Banana Fries website preview",
   },
   {
-    title: "Ace Plus",
-    description: "A project game in DigiPlus Interactive Corp.",
-    link: "https://ace-plus.vercel.app/",
-    domainName: "ace-plus.vercel.app",
+    title: "RigNation",
+    description: "An e-commerce website for a gaming community",
+    link: "https://cataylorignationph.netlify.app/",
+    domainName: "cataylorignationph.netlify.app",
+    imageSrc: RigNationPreview,
+    screenshotSrc: "/projects/rigination.png",
+    imageAlt: "RigNation website preview",
   },
-  {
-    title: "Mat Store",
-    description: "An e-commerce website for mats",
-    link: "https://mat-store.vercel.app/",
-    domainName: "mat-store.vercel.app",
-  },
-  {
-    title: "Real Estate Website",
-    description: "A real estate website for property listings",
-    link: "https://real-state-ahx9h4hmg-rogel0s-projects.vercel.app/",
-    domainName: "real-state.vercel.app",
-  },
+
 ];

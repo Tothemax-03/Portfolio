@@ -8,7 +8,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <div className="flex flex-col min-h-screen w-full items-center bg-background text-foreground">
-        <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8 xl:px-4">
+        <div className="w-full max-w-6xl px-4 sm:px-6 lg:px-8 xl:px-4 pop-scope">
           <Header />
           <ToggleMode />
           <Content />

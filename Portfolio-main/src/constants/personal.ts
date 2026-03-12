@@ -1,4 +1,7 @@
 export const personalLinks = {
-  resume: "https://drive.google.com/file/d/1ETmpTnJlS6n7cod75u3gIigSsF01_P9L/view?usp=drive_link", // Replace with your actual resume URL
+  resume:
+    "https://drive.google.com/file/d/1d063eA6aTO_fJTpuMuulPj0iM8IqRVFc/view?usp=sharing",
+  resumeView:
+    "https://drive.google.com/file/d/1d063eA6aTO_fJTpuMuulPj0iM8IqRVFc/view?usp=sharing",
   email: "mailto:gerodiazrogel0@gmail.com", 
 };

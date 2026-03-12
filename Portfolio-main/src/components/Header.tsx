@@ -1,8 +1,7 @@
 import ProfileImage from "../assets/images/profile.png";
 import { ReactComponent as VerifiedCheck } from "../assets/svg/verified-check.svg";
 import { ReactComponent as Location } from "../assets/svg/location.svg";
-import { IoNewspaperOutline } from "react-icons/io5";
-import { FaAngleRight } from "react-icons/fa";
+import { HiOutlineArrowDownTray } from "react-icons/hi2";
 import { IoIosSend } from "react-icons/io";
 import { personalLinks } from "../constants/personal";
 
@@ -21,29 +20,38 @@ const Header = () => {
         <div className="flex flex-col gap-1">
           <div className="flex flex-col gap-1">
             <h3 className="text-lg lg:text-2xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
-              Rogel Gerodiaz
+              Paul Czar F Cataylo
               <VerifiedCheck className="w-4 h-4 lg:w-5 lg:h-5" />
             </h3>
-            <h5 className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+            <h5 className="text-xs lg:text-sm text-gray-600 dark:text-white flex items-center gap-1">
               <Location className="w-4 h-4" />
-              Metro Manila, Philippines
+              Siaton, Negros Oriental, Philippines
             </h5>
             <h4 className="text-xs lg:text-sm font-medium text-gray-800 dark:text-gray-300 mt-1">
               Front-end Developer{" "}
-              <span className="text-gray-400 dark:text-gray-500">\</span> Web
-              Developer
+              <span className="text-gray-400 dark:text-gray-500">\</span> BSIT Student | Front-End Developer | 
+              UI/UX Designer
+            
             </h4>
           </div>
-          <div className="flex mt-3 gap-2">
+          <div className="flex flex-wrap items-center mt-3 gap-2">
             <a
               href={personalLinks.resume}
+              download="Paul-Cataylo-Resume.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="h-8 lg:h-9 px-3 lg:px-4 bg-black dark:bg-white text-white dark:text-black font-medium text-xs lg:text-sm rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors flex items-center gap-2"
             >
-              <IoNewspaperOutline className="w-3 h-3 lg:w-4 lg:h-4" />
-              Resume
-              <FaAngleRight className="w-3 h-3" />
+              <HiOutlineArrowDownTray className="w-3 h-3 lg:w-4 lg:h-4" />
+              Download Resume
+            </a>
+            <a
+              href={personalLinks.resumeView}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs lg:text-sm text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white underline-offset-4 hover:underline transition-colors px-1"
+            >
+              View Resume
             </a>
             <a
               href={personalLinks.email}
