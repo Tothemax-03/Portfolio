@@ -1,113 +1,55 @@
-const {
-  NO_ANSWER_REPLY,
-  findKnowledgeMatches,
-  buildKnowledgeContext,
-  buildFallbackReplyFromMatches,
-} = require("./knowledge-base");
-
 const MODEL_NAME = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+
+const SYSTEM_PROMPT = `You are an AI assistant on the personal portfolio website of Paul Czar F. Cataylo.
+
+About Paul:
+- Full Name: Paul Czar F. Cataylo
+- Role: BSIT Student | Web Developer | UI/UX Designer
+- Location: Siaton, Negros Oriental, Philippines
+- Field of Study: Bachelor of Science in Information Technology (BSIT)
+- Passion: Building modern, responsive, and user-focused web applications
+
+Skills:
+- HTML
+- CSS
+- JavaScript
+- TypeScript
+- React
+- Tailwind CSS
+- Node.js
+- Git
+- GitHub
+- VS Code
+- UI/UX Design with Figma
+
+Experience:
+- Freelance Data Annotator at Remotask
+- Worked on 2D and 3D data annotation for AI training
+- Tasks included bounding boxes, segmentation, and LiDAR labeling
+
+Projects:
+- RigNation - an e-commerce website for a gaming community
+- Heart Banana Fries - a website for a food business
+- Personal Portfolio Website
+
+Instructions for the AI:
+- Answer questions about Paul's skills, projects, experience, and portfolio
+- If asked "Who are you?" respond that you are Paul's AI portfolio assistant
+- If asked "What is Paul's name?" answer correctly
+- If asked about skills, experience, projects, or background, answer using the provided information
+- If the question is unrelated, still respond like a helpful AI assistant
+- Keep responses clear, friendly, and professional`;
 
 const RESPONSE_HEADERS = {
   "Content-Type": "application/json",
 };
 
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 12;
-
-const rateLimitStore = globalThis.__chatRateLimitStore || new Map();
-globalThis.__chatRateLimitStore = rateLimitStore;
-
-const SYSTEM_PROMPT = `You are an AI portfolio assistant.
-Rules:
-- Answer ONLY using the provided knowledge base context.
-- If the answer is not in the context, reply exactly: "${NO_ANSWER_REPLY}"
-- Keep replies short, accurate, and relevant.
-- Do not invent facts.`;
-
-const toResponse = (statusCode, body, extraHeaders = {}) => ({
+const toResponse = (statusCode, body) => ({
   statusCode,
-  headers: {
-    ...RESPONSE_HEADERS,
-    ...extraHeaders,
-  },
+  headers: RESPONSE_HEADERS,
   body: JSON.stringify(body),
 });
-
-const getHeader = (headers, key) => {
-  if (!headers || typeof headers !== "object") return "";
-
-  const direct = headers[key];
-  if (typeof direct === "string") return direct;
-
-  const lower = headers[key.toLowerCase()];
-  if (typeof lower === "string") return lower;
-
-  const upper = headers[key.toUpperCase()];
-  if (typeof upper === "string") return upper;
-
-  return "";
-};
-
-const getClientIdentifier = (event) => {
-  const forwardedFor = getHeader(event.headers, "x-forwarded-for");
-  if (forwardedFor) {
-    const firstIp = forwardedFor.split(",")[0]?.trim();
-    if (firstIp) return firstIp;
-  }
-
-  const netlifyIp = getHeader(event.headers, "x-nf-client-connection-ip");
-  if (netlifyIp) return netlifyIp.trim();
-
-  const realIp = getHeader(event.headers, "x-real-ip");
-  if (realIp) return realIp.trim();
-
-  return "unknown-client";
-};
-
-const pruneRateLimitStore = (now) => {
-  for (const [clientId, timestamps] of rateLimitStore.entries()) {
-    const recent = timestamps.filter(
-      (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
-    );
-
-    if (recent.length > 0) {
-      rateLimitStore.set(clientId, recent);
-    } else {
-      rateLimitStore.delete(clientId);
-    }
-  }
-};
-
-const checkRateLimit = (clientId) => {
-  const now = Date.now();
-  pruneRateLimitStore(now);
-
-  const timestamps = rateLimitStore.get(clientId) || [];
-  const recent = timestamps.filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
-  );
-
-  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
-    const retryAfterSeconds = Math.max(
-      1,
-      Math.ceil((RATE_LIMIT_WINDOW_MS - (now - recent[0])) / 1000)
-    );
-
-    return {
-      limited: true,
-      retryAfterSeconds,
-    };
-  }
-
-  recent.push(now);
-  rateLimitStore.set(clientId, recent);
-
-  return {
-    limited: false,
-    retryAfterSeconds: 0,
-  };
-};
 
 const parseBody = (rawBody) => {
   try {
@@ -165,60 +107,9 @@ const extractReply = (data) => {
   return text || null;
 };
 
-const requestGeminiReply = async ({ apiKey, question, context }) => {
-  const userPrompt = `Question:\n${question}\n\nKnowledge Base Context:\n${context}`;
-
-  const geminiResponse = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: RESPONSE_HEADERS,
-    body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: SYSTEM_PROMPT }],
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: userPrompt }],
-        },
-      ],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 320,
-      },
-    }),
-  });
-
-  const geminiData = await geminiResponse.json().catch(() => ({}));
-
-  if (!geminiResponse.ok) {
-    const providerError =
-      typeof geminiData?.error?.message === "string"
-        ? geminiData.error.message
-        : "Gemini request failed.";
-    throw new Error(providerError);
-  }
-
-  return extractReply(geminiData);
-};
-
 const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return toResponse(405, { error: "Method not allowed." });
-  }
-
-  const clientId = getClientIdentifier(event);
-  const rateLimit = checkRateLimit(clientId);
-
-  if (rateLimit.limited) {
-    return toResponse(
-      429,
-      {
-        error: `Too many requests. Please wait ${rateLimit.retryAfterSeconds} seconds and try again.`,
-      },
-      {
-        "Retry-After": String(rateLimit.retryAfterSeconds),
-      }
-    );
   }
 
   const decodedBody =
@@ -236,42 +127,56 @@ const handler = async (event) => {
     return toResponse(400, { error: "Missing message content." });
   }
 
-  const latestUserMessage = [...messages]
-    .reverse()
-    .find((message) => message.role === "user");
-
-  if (!latestUserMessage || !latestUserMessage.text) {
-    return toResponse(400, { error: "Missing user question." });
-  }
-
-  const matches = findKnowledgeMatches(latestUserMessage.text, 5);
-  if (matches.length === 0) {
-    return toResponse(200, { reply: NO_ANSWER_REPLY });
-  }
-
-  const fallbackReply = buildFallbackReplyFromMatches(matches);
-  const knowledgeContext = buildKnowledgeContext(matches);
-
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return toResponse(200, { reply: fallbackReply });
+    return toResponse(500, {
+      error: "Server is missing GEMINI_API_KEY.",
+    });
   }
 
+  const contents = messages.map((message) => ({
+    role: message.role === "assistant" ? "model" : "user",
+    parts: [{ text: message.text }],
+  }));
+
   try {
-    const reply = await requestGeminiReply({
-      apiKey,
-      question: latestUserMessage.text,
-      context: knowledgeContext,
+    const geminiResponse = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: RESPONSE_HEADERS,
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: SYSTEM_PROMPT }],
+        },
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 512,
+        },
+      }),
     });
 
-    if (!reply) {
-      return toResponse(200, { reply: fallbackReply });
+    const geminiData = await geminiResponse.json().catch(() => ({}));
+
+    if (!geminiResponse.ok) {
+      const providerError =
+        typeof geminiData?.error?.message === "string"
+          ? geminiData.error.message
+          : "Gemini request failed.";
+      return toResponse(502, { error: providerError });
     }
 
-    return toResponse(200, { reply: reply.slice(0, 1200) });
-  } catch (error) {
-    console.error("Gemini request failed:", error);
-    return toResponse(200, { reply: fallbackReply });
+    const reply = extractReply(geminiData);
+    if (!reply) {
+      return toResponse(502, {
+        error: "Gemini returned no text response.",
+      });
+    }
+
+    return toResponse(200, { reply });
+  } catch {
+    return toResponse(500, {
+      error: "Failed to contact Gemini.",
+    });
   }
 };
 
