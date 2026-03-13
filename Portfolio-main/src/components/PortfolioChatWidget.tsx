@@ -1,11 +1,11 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { GoogleGenAI } from "@google/genai";
 import {
   HiOutlineChatBubbleLeftRight,
   HiOutlinePaperAirplane,
   HiOutlineXMark,
 } from "react-icons/hi2";
+import { requestChatReply } from "@/lib/chat-api";
 
 type ChatMessage = {
   id: string;
@@ -19,46 +19,6 @@ type PortfolioChatWidgetProps = {
 
 const WELCOME_MESSAGE =
   "Hi! I'm Paul's AI assistant. You can ask me about his skills, projects, experience, or background in web development.";
-
-const SYSTEM_PROMPT = `You are an AI assistant on the personal portfolio website of Paul Czar F. Cataylo.
-
-About Paul:
-- Full Name: Paul Czar F. Cataylo
-- Role: BSIT Student | Web Developer | UI/UX Designer
-- Location: Siaton, Negros Oriental, Philippines
-- Field of Study: Bachelor of Science in Information Technology (BSIT)
-- Passion: Building modern, responsive, and user-focused web applications
-
-Skills:
-- HTML
-- CSS
-- JavaScript
-- TypeScript
-- React
-- Tailwind CSS
-- Node.js
-- Git
-- GitHub
-- VS Code
-- UI/UX Design with Figma
-
-Experience:
-- Freelance Data Annotator at Remotask
-- Worked on 2D and 3D data annotation for AI training
-- Tasks included bounding boxes, segmentation, and LiDAR labeling
-
-Projects:
-- RigNation - an e-commerce website for a gaming community
-- Heart Banana Fries - a website for a food business
-- Personal Portfolio Website
-
-Instructions for the AI:
-- Answer questions about Paul's skills, projects, experience, and portfolio
-- If asked "Who are you?" respond that you are Paul's AI portfolio assistant
-- If asked "What is Paul's name?" answer correctly
-- If asked about skills, experience, projects, or background, answer using the provided information
-- If the question is unrelated, still respond like a helpful AI assistant
-- Keep responses clear, friendly, and professional`;
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -76,12 +36,6 @@ const PortfolioChatWidget = ({
   const isOpenRef = useRef(isOpen);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-
-  const ai = useMemo(() => {
-    if (!apiKey) return null;
-    return new GoogleGenAI({ apiKey });
-  }, [apiKey]);
 
   useEffect(() => {
     isOpenRef.current = isOpen;
@@ -107,35 +61,15 @@ const PortfolioChatWidget = ({
 
     setMessages(nextMessages);
     setInput("");
-
-    if (!ai) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: makeId(),
-          role: "assistant",
-          text: "Missing VITE_GEMINI_API_KEY. Add it to your .env file to enable the chatbot.",
-        },
-      ]);
-      return;
-    }
-
     setIsLoading(true);
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: nextMessages.map((message) => ({
-          role: message.role === "assistant" ? "model" : "user",
-          parts: [{ text: message.text }],
-        })),
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
-        },
-      });
 
-      const assistantText =
-        response.text?.trim() ||
-        "I couldn't generate a response right now. Please try again.";
+    try {
+      const assistantText = await requestChatReply(
+        nextMessages.map((message) => ({
+          role: message.role,
+          text: message.text,
+        }))
+      );
 
       setMessages((prev) => [
         ...prev,
@@ -149,7 +83,7 @@ const PortfolioChatWidget = ({
         {
           id: makeId(),
           role: "assistant",
-          text: "I couldn't reach Gemini right now. Please try again in a moment.",
+          text: "I couldn't reach the chat service right now. Please try again in a moment.",
         },
       ]);
       if (!isOpenRef.current) setHasUnread(true);

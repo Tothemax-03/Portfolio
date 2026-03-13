@@ -1,7 +1,7 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { GoogleGenAI } from "@google/genai";
 import { HiOutlinePaperAirplane } from "react-icons/hi2";
+import { requestChatReply } from "@/lib/chat-api";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -11,44 +11,6 @@ type ChatMessage = {
 const WELCOME_MESSAGE =
   "Hi! I'm Paul's AI assistant. You can ask me about his skills, projects, experience, or background in web development.";
 
-const SYSTEM_PROMPT = `You are an AI assistant on the personal portfolio website of Paul Czar F. Cataylo.
-
-About Paul:
-- Full Name: Paul Czar F. Cataylo
-- Role: BSIT Student | Web Developer | UI/UX Designer
-- Location: Siaton, Negros Oriental, Philippines
-- Field of Study: Bachelor of Science in Information Technology (BSIT)
-- Passion: Building modern, responsive, and user-focused web applications.
-
-Skills:
-- HTML
-- CSS
-- JavaScript
-- TypeScript
-- React
-- Tailwind CSS
-- Node.js
-- Git
-- GitHub
-- VS Code
-- UI/UX Design with Figma
-
-Experience:
-Freelance Data Annotator - Remotask (Remote)
-- Worked on 2D and 3D data annotation for AI training
-- Tasks included bounding boxes, segmentation, and LiDAR labeling
-
-Projects:
-- RigNation - An e-commerce website for a gaming community
-- Heart Banana Fries - A website for a food business
-- Personal Portfolio Website
-
-Instructions for the AI assistant:
-- Answer questions about Paul's skills, experience, projects, and portfolio.
-- If the user asks "What is your name?" answer that you are Paul's AI portfolio assistant.
-- If the user asks about Paul, answer based on the information above.
-- If the question is unrelated, respond like a helpful AI assistant.`;
-
 const PortfolioChatbot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", text: WELCOME_MESSAGE },
@@ -56,12 +18,6 @@ const PortfolioChatbot = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
-  const ai = useMemo(() => {
-    if (!apiKey) return null;
-    return new GoogleGenAI({ apiKey });
-  }, [apiKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -79,38 +35,16 @@ const PortfolioChatbot = () => {
 
     setMessages(nextMessages);
     setInput("");
-
-    if (!ai) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "Missing VITE_GEMINI_API_KEY. Add it in your .env file to enable chat.",
-        },
-      ]);
-      return;
-    }
-
     setIsLoading(true);
+
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: nextMessages.map((message) => ({
-          role: message.role === "assistant" ? "model" : "user",
-          parts: [{ text: message.text }],
-        })),
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
-        },
-      });
+      const assistantText = await requestChatReply(nextMessages);
 
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text:
-            response.text?.trim() ||
-            "I couldn't generate a response right now. Please try again.",
+          text: assistantText,
         },
       ]);
     } catch {
@@ -118,7 +52,7 @@ const PortfolioChatbot = () => {
         ...prev,
         {
           role: "assistant",
-          text: "I couldn't reach Gemini right now. Please try again in a moment.",
+          text: "I couldn't reach the chat service right now. Please try again in a moment.",
         },
       ]);
     } finally {

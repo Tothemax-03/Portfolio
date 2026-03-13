@@ -3,6 +3,9 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "Portfolio-main/netlify/functions"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
