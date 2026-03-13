@@ -24,16 +24,21 @@ export const requestChatReply = async (
     body: JSON.stringify({ messages }),
   });
 
-  const payload = (await response.json().catch(() => null)) as
+  const contentType = response.headers.get("content-type") ?? "";
+  const payload = (contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : null) as
     | ChatApiSuccess
     | ChatApiError
     | null;
+  const rawText =
+    payload === null ? (await response.text().catch(() => "")).trim() : "";
 
   if (!response.ok) {
     const errorMessage =
       payload && "error" in payload && typeof payload.error === "string"
         ? payload.error
-        : "Chat service request failed.";
+        : rawText || `Chat service request failed (${response.status}).`;
     throw new Error(errorMessage);
   }
 
