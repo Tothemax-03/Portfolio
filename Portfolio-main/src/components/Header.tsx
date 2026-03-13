@@ -13,15 +13,9 @@ const ROLE_TEXT =
   "BSIT Student | Aspring Full Stack Developer | UI/UX Designer";
 
 const Header = () => {
-  const [isProfileHovered, setIsProfileHovered] = useState(false);
   const [typedRole, setTypedRole] = useState("");
   const { theme } = useTheme();
-  const activeProfileImage =
-    isProfileHovered
-      ? ProfileHoverImage
-      : theme === "dark"
-      ? ProfileDarkImage
-      : ProfileImage;
+  const activeProfileBase = theme === "dark" ? ProfileDarkImage : ProfileImage;
 
   useEffect(() => {
     let index = 0;
@@ -51,14 +45,16 @@ const Header = () => {
   return (
     <header className="theme-card w-full h-auto flex justify-between items-center pt-8 lg:pt-12 xl:px-16">
       <div className="flex gap-4 lg:gap-6">
-        <div
-          onPointerEnter={() => setIsProfileHovered(true)}
-          onPointerLeave={() => setIsProfileHovered(false)}
-        >
+        <div className="group relative w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38">
           <img
-            src={activeProfileImage}
-            alt="Profile"
-            className="w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38 rounded-lg object-cover transition-all duration-300"
+            src={activeProfileBase}
+            alt="Profile base"
+            className="w-full h-full rounded-lg object-cover transition-opacity duration-300"
+          />
+          <img
+            src={ProfileHoverImage}
+            alt="Profile hover"
+            className="pointer-events-none absolute inset-0 w-full h-full rounded-lg object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-within:opacity-100"
           />
         </div>
 
