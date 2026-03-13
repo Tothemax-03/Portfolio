@@ -77,13 +77,17 @@ const PortfolioChatWidget = ({
       ]);
 
       if (!isOpenRef.current) setHasUnread(true);
-    } catch {
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "I couldn't reach the chat service right now. Please try again in a moment.";
       setMessages((prev) => [
         ...prev,
         {
           id: makeId(),
           role: "assistant",
-          text: "I couldn't reach the chat service right now. Please try again in a moment.",
+          text: errorMessage,
         },
       ]);
       if (!isOpenRef.current) setHasUnread(true);

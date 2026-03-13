@@ -4,7 +4,7 @@
   publish = "dist"
 
 [functions]
-  directory = "Portfolio-main/netlify/functions"
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"
