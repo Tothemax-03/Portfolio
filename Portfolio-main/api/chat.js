@@ -1,3 +1,5 @@
+import { getKnowledgeBaseReply } from "./knowledgeBase.js";
+
 const MODEL_NAME = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
 
@@ -101,6 +103,24 @@ const sendJson = (res, status, body) => {
   res.status(status).json(body);
 };
 
+const isGeminiLimitOrUnavailableError = (status, message) => {
+  const normalizedMessage = String(message ?? "").toLowerCase();
+
+  if ([429, 503].includes(status)) return true;
+
+  const errorHints = [
+    "rate limit",
+    "quota",
+    "resource exhausted",
+    "too many requests",
+    "api unavailable",
+    "service unavailable",
+    "unavailable",
+  ];
+
+  return errorHints.some((hint) => normalizedMessage.includes(hint));
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "Method not allowed." });
@@ -117,11 +137,16 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { error: "Missing message content." });
   }
 
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user");
+  const fallbackReply = getKnowledgeBaseReply(latestUserMessage?.text ?? "");
+
   const apiKey = process.env.GEMINI_API_KEY;
+
+  // Fallback immediately to local knowledge base when API key is unavailable.
   if (!apiKey) {
-    return sendJson(res, 500, {
-      error: "Server is missing GEMINI_API_KEY.",
-    });
+    return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
   }
 
   const contents = messages.map((message) => ({
@@ -154,20 +179,23 @@ export default async function handler(req, res) {
         typeof geminiData?.error?.message === "string"
           ? geminiData.error.message
           : "Gemini request failed.";
-      return sendJson(res, 502, { error: providerError });
+
+      // For rate/quota/unavailable errors (and any request failure), return KB fallback.
+      if (isGeminiLimitOrUnavailableError(geminiResponse.status, providerError)) {
+        return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+      }
+
+      return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
     }
 
     const reply = extractReply(geminiData);
     if (!reply) {
-      return sendJson(res, 502, {
-        error: "Gemini returned no text response.",
-      });
+      return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
     }
 
-    return sendJson(res, 200, { reply });
+    return sendJson(res, 200, { reply, source: "gemini" });
   } catch {
-    return sendJson(res, 500, {
-      error: "Failed to contact Gemini.",
-    });
+    // Network or provider outage fallback.
+    return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
   }
 }
