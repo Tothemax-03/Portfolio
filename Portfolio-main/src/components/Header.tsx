@@ -17,10 +17,10 @@ const Header = () => {
   const [typedRole, setTypedRole] = useState("");
   const { theme } = useTheme();
   const activeProfileImage =
-    theme === "dark"
-      ? ProfileDarkImage
-      : isProfileHovered
+    isProfileHovered
       ? ProfileHoverImage
+      : theme === "dark"
+      ? ProfileDarkImage
       : ProfileImage;
 
   useEffect(() => {
@@ -52,8 +52,8 @@ const Header = () => {
     <header className="theme-card w-full h-auto flex justify-between items-center pt-8 lg:pt-12 xl:px-16">
       <div className="flex gap-4 lg:gap-6">
         <div
-          onMouseEnter={() => setIsProfileHovered(true)}
-          onMouseLeave={() => setIsProfileHovered(false)}
+          onPointerEnter={() => setIsProfileHovered(true)}
+          onPointerLeave={() => setIsProfileHovered(false)}
         >
           <img
             src={activeProfileImage}
