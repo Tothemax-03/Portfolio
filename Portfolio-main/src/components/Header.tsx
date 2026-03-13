@@ -13,6 +13,7 @@ const ROLE_TEXT =
   "BSIT Student | Aspring Full Stack Developer | UI/UX Designer";
 
 const Header = () => {
+  const [isProfilePreviewActive, setIsProfilePreviewActive] = useState(false);
   const [typedRole, setTypedRole] = useState("");
   const { theme } = useTheme();
   const activeProfileBase = theme === "dark" ? ProfileDarkImage : ProfileImage;
@@ -45,7 +46,17 @@ const Header = () => {
   return (
     <header className="theme-card w-full h-auto flex justify-between items-center pt-8 lg:pt-12 xl:px-16">
       <div className="flex gap-4 lg:gap-6">
-        <div className="group relative w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38">
+        <div
+          className="group relative w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38 cursor-pointer"
+          onMouseEnter={() => setIsProfilePreviewActive(true)}
+          onMouseLeave={() => setIsProfilePreviewActive(false)}
+          onFocus={() => setIsProfilePreviewActive(true)}
+          onBlur={() => setIsProfilePreviewActive(false)}
+          onTouchStart={() => setIsProfilePreviewActive((prev) => !prev)}
+          tabIndex={0}
+          role="button"
+          aria-label="Preview alternate profile photo"
+        >
           <img
             src={activeProfileBase}
             alt="Profile base"
@@ -54,7 +65,9 @@ const Header = () => {
           <img
             src={ProfileHoverImage}
             alt="Profile hover"
-            className="pointer-events-none absolute inset-0 w-full h-full rounded-lg object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-within:opacity-100"
+            className={`pointer-events-none absolute inset-0 w-full h-full rounded-lg object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100 group-focus-within:opacity-100 ${
+              isProfilePreviewActive ? "opacity-100" : ""
+            }`}
           />
         </div>
 
