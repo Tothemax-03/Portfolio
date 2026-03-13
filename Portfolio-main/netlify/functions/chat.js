@@ -1,9 +1,9 @@
-const {
+import {
   NO_ANSWER_REPLY,
   findKnowledgeMatches,
   buildKnowledgeContext,
   buildFallbackReplyFromMatches,
-} = require("./knowledge-base");
+} from "./knowledge-base.js";
 
 const MODEL_NAME = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
@@ -275,4 +275,4 @@ const handler = async (event) => {
   }
 };
 
-exports.handler = handler;
+export { handler };

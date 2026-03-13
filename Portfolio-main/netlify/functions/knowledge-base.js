@@ -222,7 +222,7 @@ const buildFallbackReplyFromMatches = (matches) => {
   return `Based on the knowledge base:\n${lines.join("\n")}`;
 };
 
-module.exports = {
+export {
   knowledgeBase,
   NO_ANSWER_REPLY,
   findKnowledgeMatches,
