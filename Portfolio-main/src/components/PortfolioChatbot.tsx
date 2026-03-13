@@ -2,6 +2,7 @@
 import type { FormEvent } from "react";
 import { GoogleGenAI } from "@google/genai";
 import { HiOutlinePaperAirplane } from "react-icons/hi2";
+import { getKnowledgeBaseReply } from "@/constants/knowledgeBase";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -44,10 +45,10 @@ Projects:
 - Personal Portfolio Website
 
 Instructions for the AI assistant:
-- Answer questions about Paul's skills, experience, projects, and portfolio.
+- Answer questions only about Paul's skills, experience, projects, education, contact, and portfolio.
 - If the user asks "What is your name?" answer that you are Paul's AI portfolio assistant.
 - If the user asks about Paul, answer based on the information above.
-- If the question is unrelated, respond like a helpful AI assistant.`;
+- If the answer is unavailable in the provided information, reply exactly: "I can only answer based on the available knowledge base information."`;
 
 const PortfolioChatbot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -81,11 +82,12 @@ const PortfolioChatbot = () => {
     setInput("");
 
     if (!ai) {
+      const fallbackText = getKnowledgeBaseReply(userText);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: "Missing VITE_GEMINI_API_KEY. Add it in your .env file to enable chat.",
+          text: fallbackText,
         },
       ]);
       return;
@@ -114,11 +116,12 @@ const PortfolioChatbot = () => {
         },
       ]);
     } catch {
+      const fallbackText = getKnowledgeBaseReply(userText);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: "I couldn't reach Gemini right now. Please try again in a moment.",
+          text: fallbackText,
         },
       ]);
     } finally {

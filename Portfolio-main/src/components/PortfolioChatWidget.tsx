@@ -6,6 +6,7 @@ import {
   HiOutlinePaperAirplane,
   HiOutlineXMark,
 } from "react-icons/hi2";
+import { getKnowledgeBaseReply } from "@/constants/knowledgeBase";
 
 type ChatMessage = {
   id: string;
@@ -53,12 +54,12 @@ Projects:
 - Personal Portfolio Website
 
 Instructions for the AI:
-- Answer questions about Paul's skills, projects, experience, and portfolio
+- Answer questions only about Paul's skills, projects, experience, education, contact, and portfolio
 - If asked "Who are you?" respond that you are Paul's AI portfolio assistant
 - If asked "What is Paul's name?" answer correctly
-- If asked about skills, experience, projects, or background, answer using the provided information
-- If the question is unrelated, still respond like a helpful AI assistant
-- Keep responses clear, friendly, and professional`;
+- If asked about skills, experience, projects, or background, answer using the provided information only
+- If the answer is unavailable in the provided information, reply exactly: "I can only answer based on the available knowledge base information."
+- Keep responses short, clear, and professional`;
 
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -109,14 +110,12 @@ const PortfolioChatWidget = ({
     setInput("");
 
     if (!ai) {
+      const fallbackText = getKnowledgeBaseReply(userText);
       setMessages((prev) => [
         ...prev,
-        {
-          id: makeId(),
-          role: "assistant",
-          text: "Missing VITE_GEMINI_API_KEY. Add it to your .env file to enable the chatbot.",
-        },
+        { id: makeId(), role: "assistant", text: fallbackText },
       ]);
+      if (!isOpenRef.current) setHasUnread(true);
       return;
     }
 
@@ -144,12 +143,13 @@ const PortfolioChatWidget = ({
 
       if (!isOpenRef.current) setHasUnread(true);
     } catch {
+      const fallbackText = getKnowledgeBaseReply(userText);
       setMessages((prev) => [
         ...prev,
         {
           id: makeId(),
           role: "assistant",
-          text: "I couldn't reach Gemini right now. Please try again in a moment.",
+          text: fallbackText,
         },
       ]);
       if (!isOpenRef.current) setHasUnread(true);
