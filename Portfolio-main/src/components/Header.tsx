@@ -1,19 +1,64 @@
-import ProfileImage from "../assets/images/profile.png";
+import { useEffect, useState } from "react";
+import ProfileImage from "../assets/images/profile1.jpg";
+import ProfileHoverImage from "../assets/images/profile.png";
+import ProfileDarkImage from "../assets/images/profile2.jpg";
 import { ReactComponent as VerifiedCheck } from "../assets/svg/verified-check.svg";
 import { ReactComponent as Location } from "../assets/svg/location.svg";
 import { HiOutlineArrowDownTray } from "react-icons/hi2";
 import { IoIosSend } from "react-icons/io";
 import { personalLinks } from "../constants/personal";
+import { useTheme } from "@/hooks/use-theme";
+
+const ROLE_TEXT =
+  "BSIT Student | Aspring Full Stack Developer | UI/UX Designer";
 
 const Header = () => {
+  const [isProfileHovered, setIsProfileHovered] = useState(false);
+  const [typedRole, setTypedRole] = useState("");
+  const { theme } = useTheme();
+  const activeProfileImage =
+    theme === "dark"
+      ? ProfileDarkImage
+      : isProfileHovered
+      ? ProfileHoverImage
+      : ProfileImage;
+
+  useEffect(() => {
+    let index = 0;
+    let holdTicks = 0;
+    setTypedRole("");
+
+    const typeInterval = window.setInterval(() => {
+      if (index < ROLE_TEXT.length) {
+        index += 1;
+        setTypedRole(ROLE_TEXT.slice(0, index));
+        return;
+      }
+
+      holdTicks += 1;
+      if (holdTicks >= 24) {
+        holdTicks = 0;
+        index = 0;
+        setTypedRole("");
+      }
+    }, 34);
+
+    return () => {
+      window.clearInterval(typeInterval);
+    };
+  }, []);
+
   return (
-    <header className="w-full h-auto flex justify-between items-center pt-8 lg:pt-12 xl:px-16">
+    <header className="theme-card w-full h-auto flex justify-between items-center pt-8 lg:pt-12 xl:px-16">
       <div className="flex gap-4 lg:gap-6">
-        <div>
+        <div
+          onMouseEnter={() => setIsProfileHovered(true)}
+          onMouseLeave={() => setIsProfileHovered(false)}
+        >
           <img
-            src={ProfileImage}
+            src={activeProfileImage}
             alt="Profile"
-            className="w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38 rounded-lg object-cover"
+            className="w-40 h-36 sm:w-24 sm:h-24 lg:w-28 lg:h-28 xl:w-38 xl:h-38 rounded-lg object-cover transition-all duration-300"
           />
         </div>
 
@@ -27,11 +72,11 @@ const Header = () => {
               <Location className="w-4 h-4" />
               Siaton, Negros Oriental, Philippines
             </h5>
-            <h4 className="text-xs lg:text-sm font-medium text-gray-800 dark:text-gray-300 mt-1">
-              Front-end Developer{" "}
-              <span className="text-gray-400 dark:text-gray-500">\</span> BSIT Student | Front-End Developer | 
-              UI/UX Designer
-            
+            <h4 className="text-xs lg:text-sm font-medium text-gray-800 dark:text-gray-300 mt-1 min-h-[20px]">
+              {typedRole}
+              <span className="inline-block w-2 text-gray-500 dark:text-gray-400 animate-pulse">
+                |
+              </span>
             </h4>
           </div>
           <div className="flex flex-wrap items-center mt-3 gap-2">
