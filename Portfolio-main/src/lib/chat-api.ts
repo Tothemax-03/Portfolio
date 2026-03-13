@@ -11,7 +11,7 @@ type ChatApiError = {
   error?: string;
 };
 
-const CHAT_FUNCTION_PATH = "/.netlify/functions/chat";
+const CHAT_FUNCTION_PATH = "/api/chat";
 
 export const requestChatReply = async (
   messages: ChatApiMessage[]
