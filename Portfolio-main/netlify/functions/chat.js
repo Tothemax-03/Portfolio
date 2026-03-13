@@ -107,7 +107,7 @@ const buildMessageList = (payload) => {
   return [];
 };
 
-export async function handler(event) {
+const handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return toResponse(405, { error: "Method not allowed." });
   }
@@ -119,7 +119,12 @@ export async function handler(event) {
     });
   }
 
-  const payload = parseBody(event.body);
+  const decodedBody =
+    event.isBase64Encoded && typeof event.body === "string"
+      ? Buffer.from(event.body, "base64").toString("utf8")
+      : event.body;
+
+  const payload = parseBody(decodedBody);
   if (!payload) {
     return toResponse(400, { error: "Invalid JSON body." });
   }
@@ -173,4 +178,6 @@ export async function handler(event) {
       error: "Failed to contact Gemini.",
     });
   }
-}
+};
+
+exports.handler = handler;
