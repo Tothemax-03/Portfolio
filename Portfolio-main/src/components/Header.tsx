@@ -10,7 +10,7 @@ import { personalLinks } from "../constants/personal";
 import { useTheme } from "@/hooks/use-theme";
 
 const ROLE_TEXT =
-  "BSIT Student | Aspring Full Stack Developer | UI/UX Designer";
+  "BSIT Student | Aspiring Full Stack Developer | UI/UX Designer";
 
 const Header = () => {
   const [isProfilePreviewActive, setIsProfilePreviewActive] = useState(false);

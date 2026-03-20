@@ -4,8 +4,11 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import svgr from "vite-plugin-svgr";
 
+const githubPagesBase = "/";
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === "github-pages" ? githubPagesBase : "/",
   plugins: [
     react(),
     tailwindcss(),
@@ -27,4 +30,4 @@ export default defineConfig({
   server: {
     host: true,
   },
-});
+}));
