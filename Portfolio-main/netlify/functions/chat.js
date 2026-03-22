@@ -1,5 +1,6 @@
 const MODEL_NAME = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+const allowedOrigins = ["https://mvsm.me", "https://www.mvsm.me"];
 
 const SYSTEM_PROMPT = `You are an AI assistant on the personal portfolio website of Paul Czar F. Cataylo.
 
@@ -41,14 +42,33 @@ Instructions for the AI:
 - If the question is unrelated, still respond like a helpful AI assistant
 - Keep responses clear, friendly, and professional`;
 
-const RESPONSE_HEADERS = {
-  "Content-Type": "application/json",
+const isAllowedOrigin = (origin) => allowedOrigins.includes(origin);
+
+const getResponseHeaders = (origin) => {
+  const headers = {
+    "Content-Type": "application/json",
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (origin && isAllowedOrigin(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
 };
 
-const toResponse = (statusCode, body) => ({
+const toResponse = (statusCode, body, origin) => ({
   statusCode,
-  headers: RESPONSE_HEADERS,
+  headers: getResponseHeaders(origin),
   body: JSON.stringify(body),
+});
+
+const toEmptyResponse = (statusCode, origin) => ({
+  statusCode,
+  headers: getResponseHeaders(origin),
+  body: "",
 });
 
 const parseBody = (rawBody) => {
@@ -108,8 +128,22 @@ const extractReply = (data) => {
 };
 
 const handler = async (event) => {
+  const origin = event.headers?.origin ?? event.headers?.Origin;
+
+  if (event.httpMethod === "OPTIONS") {
+    if (origin && !isAllowedOrigin(origin)) {
+      return toResponse(403, { error: "Origin not allowed." }, origin);
+    }
+
+    return toEmptyResponse(204, origin);
+  }
+
   if (event.httpMethod !== "POST") {
-    return toResponse(405, { error: "Method not allowed." });
+    return toResponse(405, { error: "Method not allowed." }, origin);
+  }
+
+  if (origin && !isAllowedOrigin(origin)) {
+    return toResponse(403, { error: "Origin not allowed." }, origin);
   }
 
   const decodedBody =
@@ -119,19 +153,23 @@ const handler = async (event) => {
 
   const payload = parseBody(decodedBody);
   if (!payload) {
-    return toResponse(400, { error: "Invalid JSON body." });
+    return toResponse(400, { error: "Invalid JSON body." }, origin);
   }
 
   const messages = buildMessageList(payload);
   if (messages.length === 0) {
-    return toResponse(400, { error: "Missing message content." });
+    return toResponse(400, { error: "Missing message content." }, origin);
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return toResponse(500, {
-      error: "Server is missing GEMINI_API_KEY.",
-    });
+    return toResponse(
+      500,
+      {
+        error: "Server is missing GEMINI_API_KEY.",
+      },
+      origin
+    );
   }
 
   const contents = messages.map((message) => ({
@@ -142,7 +180,9 @@ const handler = async (event) => {
   try {
     const geminiResponse = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: "POST",
-      headers: RESPONSE_HEADERS,
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         systemInstruction: {
           parts: [{ text: SYSTEM_PROMPT }],
@@ -162,21 +202,29 @@ const handler = async (event) => {
         typeof geminiData?.error?.message === "string"
           ? geminiData.error.message
           : "Gemini request failed.";
-      return toResponse(502, { error: providerError });
+      return toResponse(502, { error: providerError }, origin);
     }
 
     const reply = extractReply(geminiData);
     if (!reply) {
-      return toResponse(502, {
-        error: "Gemini returned no text response.",
-      });
+      return toResponse(
+        502,
+        {
+          error: "Gemini returned no text response.",
+        },
+        origin
+      );
     }
 
-    return toResponse(200, { reply });
+    return toResponse(200, { reply }, origin);
   } catch {
-    return toResponse(500, {
-      error: "Failed to contact Gemini.",
-    });
+    return toResponse(
+      500,
+      {
+        error: "Failed to contact Gemini.",
+      },
+      origin
+    );
   }
 };
 

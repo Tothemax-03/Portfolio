@@ -2,6 +2,7 @@ import { getKnowledgeBaseReply } from "./knowledgeBase.js";
 
 const MODEL_NAME = "gemini-2.5-flash";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
+const allowedOrigins = ["https://mvsm.me", "https://www.mvsm.me"];
 
 const SYSTEM_PROMPT = `You are an AI assistant on the personal portfolio website of Paul Czar F. Cataylo.
 
@@ -99,8 +100,30 @@ const extractReply = (data) => {
   return text || null;
 };
 
-const sendJson = (res, status, body) => {
-  res.status(status).json(body);
+const isAllowedOrigin = (origin) => allowedOrigins.includes(origin);
+
+const setCorsHeaders = (req, res) => {
+  const origin = req.headers.origin;
+
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  return origin;
+};
+
+const sendJson = (req, res, status, body) => {
+  const origin = setCorsHeaders(req, res);
+
+  if (origin && !isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: "Origin not allowed." });
+  }
+
+  return res.status(status).json(body);
 };
 
 const isGeminiLimitOrUnavailableError = (status, message) => {
@@ -122,19 +145,33 @@ const isGeminiLimitOrUnavailableError = (status, message) => {
 };
 
 export default async function handler(req, res) {
+  const origin = setCorsHeaders(req, res);
+
+  if (req.method === "OPTIONS") {
+    if (origin && !isAllowedOrigin(origin)) {
+      return res.status(403).json({ error: "Origin not allowed." });
+    }
+
+    return res.status(204).end();
+  }
+
   if (req.method !== "POST") {
-    return sendJson(res, 405, { error: "Method not allowed." });
+    return sendJson(req, res, 405, { error: "Method not allowed." });
+  }
+
+  if (origin && !isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: "Origin not allowed." });
   }
 
   const payload =
     typeof req.body === "string" ? parseBody(req.body) : req.body ?? null;
   if (!payload) {
-    return sendJson(res, 400, { error: "Invalid JSON body." });
+    return sendJson(req, res, 400, { error: "Invalid JSON body." });
   }
 
   const messages = buildMessageList(payload);
   if (messages.length === 0) {
-    return sendJson(res, 400, { error: "Missing message content." });
+    return sendJson(req, res, 400, { error: "Missing message content." });
   }
 
   const latestUserMessage = [...messages]
@@ -144,9 +181,11 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
 
-  // Fallback immediately to local knowledge base when API key is unavailable.
   if (!apiKey) {
-    return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+    return sendJson(req, res, 200, {
+      reply: fallbackReply,
+      source: "knowledge-base",
+    });
   }
 
   const contents = messages.map((message) => ({
@@ -180,22 +219,32 @@ export default async function handler(req, res) {
           ? geminiData.error.message
           : "Gemini request failed.";
 
-      // For rate/quota/unavailable errors (and any request failure), return KB fallback.
       if (isGeminiLimitOrUnavailableError(geminiResponse.status, providerError)) {
-        return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+        return sendJson(req, res, 200, {
+          reply: fallbackReply,
+          source: "knowledge-base",
+        });
       }
 
-      return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+      return sendJson(req, res, 200, {
+        reply: fallbackReply,
+        source: "knowledge-base",
+      });
     }
 
     const reply = extractReply(geminiData);
     if (!reply) {
-      return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+      return sendJson(req, res, 200, {
+        reply: fallbackReply,
+        source: "knowledge-base",
+      });
     }
 
-    return sendJson(res, 200, { reply, source: "gemini" });
+    return sendJson(req, res, 200, { reply, source: "gemini" });
   } catch {
-    // Network or provider outage fallback.
-    return sendJson(res, 200, { reply: fallbackReply, source: "knowledge-base" });
+    return sendJson(req, res, 200, {
+      reply: fallbackReply,
+      source: "knowledge-base",
+    });
   }
 }
