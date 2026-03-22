@@ -7,20 +7,20 @@ const ToggleMode = () => {
   const isDark = theme === "dark";
 
   return (
-    <div className="absolute right-3 md:right-24 lg:right-52 xl:right-130 top-6">
+    <div className="fixed top-4 right-4 z-50">
       <Switch
         checked={isDark}
         disabled={isTransitioning}
         onChange={() => setTheme(isDark ? "light" : "dark")}
-        className={`group inline-flex h-5 w-10 xl:h-6 xl:w-11 items-center rounded-full bg-gray-200 transition-all duration-300 data-checked:bg-gray-800 dark:bg-gray-700 ${
+        className={`group inline-flex h-10 w-16 items-center rounded-full border border-black/5 bg-white/90 shadow-[0_14px_34px_rgba(15,23,42,0.12)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.18)] data-checked:bg-gray-800 dark:border-white/10 dark:bg-slate-900/90 dark:shadow-[0_16px_40px_rgba(2,6,23,0.45)] ${
           isTransitioning ? "opacity-70 pointer-events-none" : ""
         }`}
       >
-        <span className="size-3 xl:size-4 translate-x-1 rounded-full bg-white transition group-data-checked:translate-x-6 flex items-center justify-center shadow-sm">
+        <span className="flex size-7 translate-x-1.5 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 group-data-checked:translate-x-7 dark:bg-slate-100">
           {isDark ? (
-            <MdDarkMode className="h-6 w-6 text-gray-700" />
+            <MdDarkMode className="h-4 w-4 text-slate-700" />
           ) : (
-            <MdLightMode className="h-6 w-6 text-yellow-500" />
+            <MdLightMode className="h-4 w-4 text-amber-500" />
           )}
         </span>
       </Switch>

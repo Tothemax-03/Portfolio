@@ -2,6 +2,7 @@ import "./App.css";
 import Header from "./components/Header";
 import ToggleMode from "./components/ToggleMode";
 import Content from "./components/Content";
+import BackgroundMusicPlayer from "./components/BackgroundMusicPlayer";
 import PortfolioChatWidget from "./components/PortfolioChatWidget";
 import { ThemeProvider } from "./components/theme-provider";
 import { useTheme } from "./hooks/use-theme";
@@ -24,6 +25,7 @@ const PortfolioLayout = () => {
         <ToggleMode />
         <Content />
       </div>
+      <BackgroundMusicPlayer isThemeTransitioning={isTransitioning} />
       <PortfolioChatWidget isThemeTransitioning={isTransitioning} />
     </div>
   );
